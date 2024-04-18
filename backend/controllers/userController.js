@@ -21,17 +21,6 @@ async function getUserInfo(userId) {
   return results.dataValues;
 }
 
-// fonction pour obtenir le panier d'un user en fonction de son id
-/* async function getUserBasket(userId) {
-  const panierQuery = `
-    SELECT b.*, p.quantity
-    FROM basket p
-    JOIN books b ON p.book_id = b.id
-    WHERE p.user_id = $1;
-  `;
-  const { rows } = await pool.query(panierQuery, [userId]);
-  return rows;
-} */
 
 async function getAllInfoUser(req,res){
   console.log('recupération de utilisateur', req.params.id);
