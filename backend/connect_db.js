@@ -1,12 +1,6 @@
 const Sequelize = require('sequelize');
-// Configuration de la connexion à la base de données
-/* const pool = new db.Pool({
-  host: 'localhost',
-  user: 'postgres',
-  password: 'Barcelona10',
-  database: 'librairie'
-}); */
-const poolSequelize = new Sequelize('librairie', 'postgres', 'Barcelona10', {
+
+const poolSequelize = new Sequelize('tadatabase', 'tonusername', 'tonmdpp', {
   host: 'localhost',
   dialect: 'postgres'
 });
@@ -29,13 +23,4 @@ poolSequelize
   });
    
 //Connexion à la db
-/* 
-pool.connect((err,client,release)=>{
-    if(err){
-      return console.log(`Erreur de connexion à la base de données ${err.message} : stack: ${err.stack}` );
-    }
-    console.log("connection à db réussi!!");
-}) */
-
-
 module.exports = {poolSequelize,Sequelize};
