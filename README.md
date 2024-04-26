@@ -1,9 +1,5 @@
 # Fonctionnement de l'API
 
-
-**il manque juste les sessions et l'authentification 
-dans le back**
-
 **important à faire**
 - tu trouvera un fichier db_backup.sql pour récupérer la sauvegarde de la base de donnée, install pgAdmin 15 ou 16 (j'utilise le 15)
 voici: une video qui va te montrer comment importer les tables du backup: https://www.youtube.com/watch?v=JFxY2qajjwA
