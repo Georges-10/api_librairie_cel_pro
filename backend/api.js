@@ -1,5 +1,8 @@
 const express = require('express');
+const https = require('https');
+const fs = require('fs');
 const app = express();
+const cookieParser = require('cookie-parser');
 
 // Importer les contrôleurs
 const bookRouter = require('./routes/book');
@@ -7,7 +10,11 @@ const userRouter = require('./routes/user');
 const basketRouter = require('./routes/basket');
 
 app.use(express.json()); // Middleware pour parser le JSON
-
+app.use(cookieParser());
+const options = {
+  key: fs.readFileSync('../../certificatsSSL/localhost-key.pem'),
+  cert: fs.readFileSync('../../certificatsSSL/localhost.pem')
+};
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -22,10 +29,13 @@ app.use('/api/books', bookRouter);
 app.use('/api/user', userRouter);
 app.use('/api/basket', basketRouter);
 
-const port = 3000;
-app.listen(port, () =>{
-   
-  console.log(`Server running on http://localhost:${port}`)
+
+const port = 443;
+
+https.createServer(options,app).listen(port,()=>{
+
+ 
+  console.log(`Server Secure running on https://localhost:${port}`)
   console.log('Lancement de l\'API...');
   console.log("API created by the Cell Pro CEO and co founder of MBOMA_ITECH");
   console.log("\n\nendpoint disponible...");
@@ -43,6 +53,6 @@ console.log('Supprimer un livre du panier : DELETE /api/basket/del, body {user_i
 console.log('Mettre à jour la quantité d\'un livre du panier : PUT /api/basket/update, body {user_id, book_id, quantity}');
 
 
+})
 
-}
- );
+//app.listen(port, () =>{});

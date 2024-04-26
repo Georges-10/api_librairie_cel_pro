@@ -3,6 +3,8 @@ const User=require('../model/user');
 const Basket = require('../model/basket');
 const jwt = require('jsonwebtoken');
 const saltRounds = 10;
+const clef= 'LE_MBOMIST_CEST_UN_ART';
+const newToken = require('../utils');
 
 /* fonction pour obtenir les  */
 async function getUserInfo(userId) {
@@ -61,7 +63,7 @@ async function getAllInfoUser(req,res){
 //obtenir un user par son id
 exports.getUserById=async(req,res)=>{
   const response = await getAllInfoUser(req,res)
-  res.json(response);
+  res.json(newToken(res,response));
 };
 
 // création d'un user
@@ -97,6 +99,12 @@ exports.createUser= async (req,res)=>{
 
 };
 
+// Générer les tokens
+function generateTokens(userId) {
+  const accessToken = jwt.sign({ userId:userId}, clef, { expiresIn: '15m' });
+  const refreshToken = jwt.sign({ userId:userId}, clef, { expiresIn: '7d' });
+  return { accessToken, refreshToken };
+}
 
 
 exports.userLogin= async(req,res)=>{
@@ -115,18 +123,19 @@ exports.userLogin= async(req,res)=>{
       if(!valide){
         res.status(401).json({message:'Pair mail/mode de passe incorrect'});
       }else{ 
-        const token = jwt.sign(
-          {userId:user.id},//l'objet à signer
-          'LE_MBOMIST_CEST_UN_ART',//clef utiliser pour signer
-          {expiresIn: '24h'}//configuration pour temps de l'expiration du token 
-        )
+        const tokens = generateTokens(user.id);
         req.auth={userId:user.id}//pour getAllInfoUser 
         req.params.id = req.auth.userId;
         const response = await getAllInfoUser(req,res);
-
+        res.cookie('refreshToken',tokens.refreshToken, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'Strict',
+          maxAge: 3 * 24 * 60 * 60 * 1000 // 3 jours
+        })
         res.status(200).json({
           ...response,//copie de response
-          token: token
+          token: tokens.accessToken
         });
       }
     }
@@ -134,3 +143,17 @@ exports.userLogin= async(req,res)=>{
     res.status(500).json({error});
   }
 };
+
+
+exports.userLogout = async (req,res)=>{
+    // Supposons que le refresh token est stocké dans un cookie HttpOnly
+    const { refreshToken } = req.cookies;
+
+    if (!refreshToken) {
+        return res.status(400).json({ message: "No refresh token provided." });
+    }
+    // Effacer le cookie contenant le refresh token
+    res.cookie('refreshToken', '', { httpOnly: true, secure: true, sameSite: 'Strict', maxAge: 0 });
+    // Réponse de succès
+    res.status(200).json({ message: "Successfully logged out." });
+}

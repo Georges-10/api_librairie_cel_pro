@@ -1,8 +1,6 @@
-const express = require('express');
 const Basket = require('../model/basket');
-// ADD
-// ajout d'un livre dans le panier de l'utilisateur
-/*router.post('/add',auth,*/
+const newToken = require('../utils');
+
 
 exports.addBookBasket = async (req, res) => {
   console.log('AJOUT d’un livre dans un panier', req.body);
@@ -17,7 +15,7 @@ exports.addBookBasket = async (req, res) => {
         quantity: quantity||1, 
       });
   
-    res.status(201).json(newBasket);
+    res.status(201).json(newToken(res,newBasket));
   }catch(error){
     if(error.message ==="error id user"){
      return res.status(401).json({error});
@@ -35,7 +33,7 @@ async function deleteFromBasket(user_id, book_id, res) {
     })
     const mess = (result==0)?'Aucune entrée trouvée à supprimer.'
                 :`book with book_id: ${book_id} has been deleted of basket  user_id: ${user_id}.`
-    res.status(200).send(mess);
+    res.status(200).json(newToken(res,mess));
 
   }catch(error){
         return res.status(400).send(error);
@@ -55,6 +53,9 @@ exports.delFromBasket = async(req, res) => {
   }
 };
 
+
+
+
 // modification de la quantité si dans  la quantité vaut 0 l'article sera supprimé du panier
 /*router.put('/update',auth,*/ 
 
@@ -68,8 +69,8 @@ exports.updateBasket = async (req, res) => {
     if(parseInt(quantity) === 0){  // suppression de l'article si la quantité vaut 0  
       await deleteFromBasket(user_id,book_id,res);
     }  
-    else{ 
-      const results = await Basket.update(
+    else{        
+      const basket = await Basket.update(
         { quantity: quantity }, // colonne à mettre à jour et nouvelle valeur
         {where: {
             user_id: user_id,
@@ -77,16 +78,23 @@ exports.updateBasket = async (req, res) => {
           },
           returning: true, // Seulement pour PostgreSQL, retourne les objets mis à jour
         }
-      );
-      if(results && results[0] > 0 && results[1]) {
-        res.status(200).json(results[1]);
-      } else res.status(400).send("Aucune ligne n'a été mise à jour, l'entrée spécifiée n'existe pas");
+      )
+      
+      if(basket && basket[0] > 0 && basket[1]) {
+        //const updatedItems = results[1].map(item => item.get({ plain: true }));
+        res.status(200).json(newToken(res,basket[1]));
+      } 
+      else { 
+        res.status(400).send("Aucune ligne n'a été mise à jour, l'entrée spécifiée n'existe pas");
+      } 
     }
   }catch(error){
     if(error.message ==="error id user token"){
-      res.status(401).json({error});
-    }
-    return res.status(400).send(error);
+       res.status(401).json({error});
+    }else{
+      console.log(error)
+       res.status(400).json(error);
+    } 
   }
 };
 
